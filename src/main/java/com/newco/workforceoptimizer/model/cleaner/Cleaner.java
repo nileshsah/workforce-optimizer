@@ -1,9 +1,11 @@
 package com.newco.workforceoptimizer.model.cleaner;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Data
+@AllArgsConstructor
+@Getter
 public class Cleaner {
-  private CleanerType type;
-  private Integer cleaningCapacity;
+  private final CleanerType type;
+  private final Integer cleaningCapacity;
 }
