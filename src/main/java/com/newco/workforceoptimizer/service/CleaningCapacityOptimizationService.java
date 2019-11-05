@@ -1,5 +1,7 @@
 package com.newco.workforceoptimizer.service;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.newco.workforceoptimizer.model.cleaner.Cleaner;
 import com.newco.workforceoptimizer.model.cleaner.CleanerType;
 import com.newco.workforceoptimizer.model.task.CleaningTask;
@@ -7,7 +9,6 @@ import com.newco.workforceoptimizer.model.task.CleaningTaskResult;
 import com.newco.workforceoptimizer.service.exception.InvalidTaskException;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -38,26 +39,25 @@ public class CleaningCapacityOptimizationService
       Integer roomsToClean, Cleaner seniorCleaner, Cleaner juniorCleaner) {
 
     final Map<Cleaner, Integer> optimizedCleanerCapacity =
-        new HashMap<Cleaner, Integer>() {
-          {
-            put(seniorCleaner, INFINITY);
-            put(juniorCleaner, INFINITY);
-          }
-        };
+        Maps.newHashMap(ImmutableMap.of(seniorCleaner, INFINITY, juniorCleaner, INFINITY));
 
     final Integer maximumSeniorCapacity = 1 + (roomsToClean / seniorCleaner.getCleaningCapacity());
 
-    for(Long seniorCleanerCount = 1L; seniorCleanerCount <= maximumSeniorCapacity; seniorCleanerCount++) {
+    for (Long seniorCleanerCount = 1L;
+        seniorCleanerCount <= maximumSeniorCapacity;
+        seniorCleanerCount++) {
       Long remainingRoomsToClean =
           Math.max(0, roomsToClean - (seniorCleanerCount * seniorCleaner.getCleaningCapacity()));
       Long juniorCleanerCount =
           (long) Math.ceil((double) remainingRoomsToClean / juniorCleaner.getCleaningCapacity());
 
-      Long optimizedCapacity = optimizedCleanerCapacity.entrySet().stream()
-          .mapToLong(kv -> (long) kv.getKey().getCleaningCapacity() * kv.getValue())
-          .sum();
-      Long currentCapacity = (seniorCleaner.getCleaningCapacity() * seniorCleanerCount)
-          + (juniorCleaner.getCleaningCapacity() * juniorCleanerCount);
+      Long optimizedCapacity =
+          optimizedCleanerCapacity.entrySet().stream()
+              .mapToLong(kv -> (long) kv.getKey().getCleaningCapacity() * kv.getValue())
+              .sum();
+      Long currentCapacity =
+          (seniorCleaner.getCleaningCapacity() * seniorCleanerCount)
+              + (juniorCleaner.getCleaningCapacity() * juniorCleanerCount);
 
       if (currentCapacity < optimizedCapacity) {
         optimizedCleanerCapacity.put(seniorCleaner, seniorCleanerCount.intValue());
@@ -86,10 +86,11 @@ public class CleaningCapacityOptimizationService
     task.getAvailableCleaners().stream()
         .mapToInt(Cleaner::getCleaningCapacity)
         .min()
-        .ifPresent(minCapacity -> {
-          if(minCapacity <= 0) {
-            throw new InvalidTaskException("The cleaner capacity must be > 0");
-          }
-        });
+        .ifPresent(
+            minCapacity -> {
+              if (minCapacity <= 0) {
+                throw new InvalidTaskException("The cleaner capacity must be > 0");
+              }
+            });
   }
 }
