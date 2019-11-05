@@ -93,6 +93,36 @@ public class CleaningCapacityOptimizationServiceTest {
   }
 
   @Test
+  public void shouldCalculateCorrectOptimizedCapacityValueForValidTaskV() {
+    // Given
+    Cleaner seniorCleaner = new Cleaner(CleanerType.SENIOR, 10);
+    Cleaner juniorCleaner = new Cleaner(CleanerType.JUNIOR, 6);
+    List<Cleaner> cleaners = Arrays.asList(seniorCleaner, juniorCleaner);
+
+    CleaningTask task = new CleaningTask(28, cleaners);
+
+    // When
+    CleaningTaskResult optimizedCount = capacityOptimizationService.optimize(task);
+
+    // Then
+    Assertions.assertEquals(1, optimizedCount.capacityOf(seniorCleaner));
+    Assertions.assertEquals(3, optimizedCount.capacityOf(juniorCleaner));
+  }
+
+  @Test
+  public void shouldThrowExceptionWhenCapacityIsNegative() {
+    // Given
+    Cleaner seniorCleaner = new Cleaner(CleanerType.SENIOR, 11);
+    Cleaner juniorCleaner = new Cleaner(CleanerType.JUNIOR, -6);
+    List<Cleaner> cleaners = Arrays.asList(seniorCleaner, juniorCleaner);
+
+    CleaningTask task = new CleaningTask(24, cleaners);
+
+    // When and Then
+    Assertions.assertThrows(InvalidTaskException.class, () -> capacityOptimizationService.optimize(task));
+  }
+
+  @Test
   public void shouldThrowExceptionWhenSeniorCleanerNotPresent() {
     // Given
     Cleaner juniorCleaner = new Cleaner(CleanerType.JUNIOR, 6);
